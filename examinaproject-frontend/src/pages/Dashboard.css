@@ -1,0 +1,47 @@
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+
+.dashboard-page {
+  font-family: "Press Start 2P", cursive;
+  background: linear-gradient(135deg, #143f6b, #2575fc);
+  color: #fff;
+  height: 100vh;
+}
+
+.arcade-navbar {
+  background: rgba(33, 33, 34, 0.9);
+  border-bottom: 3px solid var(--color-accent);
+  border-radius: 0 0 15px 15px;
+  padding: 0.5rem 1rem;
+}
+
+.arcade-logo {
+  font-size: 18px;
+  font-weight: bold;
+  text-shadow: 2px 2px #000;
+}
+
+.arcade-info {
+  font-size: 12px;
+  text-align: right;
+  color: #faf3e1;
+}
+
+.profile-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-accent);
+}
+
+.dashboard-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.arcade-title {
+  font-size: 18px;
+  text-shadow: 2px 2px #000;
+}

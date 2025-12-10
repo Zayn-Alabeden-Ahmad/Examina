@@ -1,0 +1,27 @@
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+
+.auth-page {
+  background: linear-gradient(120deg, #143f6b 0%, #2575fc 100%);
+  font-family: "Press Start 2P", cursive;
+  height: 100vh;
+}
+
+.auth-card {
+  width: 400px;
+  border-radius: 15px;
+  background: rgba(250, 243, 225, 0.95);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.arcade-btn {
+  font-family: "Press Start 2P", cursive;
+  font-size: 14px;
+  padding: 10px 20px;
+  letter-spacing: 1px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.arcade-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
+}

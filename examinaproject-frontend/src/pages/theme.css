@@ -1,0 +1,57 @@
+/* الألوان المتناسقة */
+:root {
+  --color-bg: #143f6b; /* خلفية رئيسية */
+  --color-secondary: #f55353; /* لون ثانوي */
+  --color-accent: #f6f54d; /* أزرار / عناصر مهمة */
+  --color-light: #faf3e1; /* خلفيات فاتحة / بطاقات */
+  --color-dark: #21211e; /* نص داكن */
+  --color-text: #1f2222; /* نص أساسي */
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: "Press Start 2P", cursive;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar,
+.footer {
+  background-color: var(--color-dark);
+  color: #fff;
+}
+
+.card {
+  background-color: var(--color-light);
+  color: var(--color-dark);
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-accent {
+  background-color: var(--color-accent);
+  color: var(--color-dark);
+  border: none;
+}
+
+.landing-section {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 100vh;
+}
+
+.landing-card {
+  background-color: var(--color-light);
+  padding: 2rem;
+  border-radius: 15px;
+  text-align: center;
+  width: 300px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.landing-card h2 {
+  margin-bottom: 1rem;
+}
