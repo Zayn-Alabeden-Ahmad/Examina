@@ -7,9 +7,9 @@ from .models import Student , Teacher ,Level
 from exams.models import Question
 from core.serializers import StudentRegisterSerializer , LoginSerializer , MyTokenObtainPairSerializer
 from django.utils import timezone
-from rest_framework.permissions import IsAuthenticated
-
-
+from rest_framework.permissions import IsAuthenticated , AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from achievements.utils import check_and_award_achievements
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
@@ -18,7 +18,7 @@ def get_tokens_for_user(user):
     }
 
 class StudentRegisterView(APIView):
-
+    permission_classes = [AllowAny];
     def post(self, request):
         serializer = StudentRegisterSerializer(data=request.data)
         if serializer.is_valid():
@@ -34,6 +34,7 @@ class StudentRegisterView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginView(APIView):
+    permission_classes = [AllowAny];
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -75,30 +76,40 @@ class HomeView(APIView):
     def get(self, request):
         user = request.user
 
+       
+        new_achievements = check_and_award_achievements(request.user)
+
         if hasattr(user, 'teacher'):
             teacher = user.teacher
+     
+            num_stars = teacher.StarLevel.NumStars if teacher.StarLevel else 0
+            
             data = {
+                "role": "teacher",
                 "name": user.first_name,
-                "stared":teacher.Stared,
-                "NumStars":teacher.StarLevel.NumStars,
+                "stared": teacher.Stared,
+                "NumStars": num_stars,
                 "status": user.Status,
                 "profile_picture": user.profile.ProfilePicture.url if user.profile.ProfilePicture else None,
-
             }
         elif hasattr(user, 'student'):
             student = user.student
             data = {
+                "role": "student",
                 "name": user.first_name,
                 "points": student.StudentPoints,
                 "level": student.Level.LevelName if student.Level else None,
-                "subLevel":student.Level.subLevel,
+                "subLevel": student.Level.subLevel if student.Level else None,
                 "status": user.Status,
                 "profile_picture": user.profile.ProfilePicture.url if user.profile.ProfilePicture else None,
-                
             }
-       
-            
-        return Response(data)
+        else:
+            return Response({"error": "User role not found"}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            "user_data": data,
+            "new_achievements": new_achievements
+        }, status=status.HTTP_200_OK)
     
 
 
@@ -126,7 +137,7 @@ class CreateQuestionAPIView(APIView):
         teacher.save(update_fields=['QuestionsAdded'])
 
         # منح إنجازات الأسئلة
-        new_awards = award_teacher_question_achievements(teacher)
+        new_awards = check_and_award_achievements(request.teacher)
 
         return Response({
             "status": "created",

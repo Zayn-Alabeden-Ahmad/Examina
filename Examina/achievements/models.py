@@ -33,6 +33,7 @@ class UserAchievement(models.Model):
     Person = models.ForeignKey(Person, on_delete=models.CASCADE)
     Achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
     DateEarned = models.DateField()
+    is_notified = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.Person.first_name} - {self.Achievement.Name}'

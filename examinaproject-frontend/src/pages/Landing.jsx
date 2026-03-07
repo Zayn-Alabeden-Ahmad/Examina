@@ -4,31 +4,21 @@ import "./Landing.css";
 
 export default function Landing() {
   return (
-    <div className="landing-page d-flex vh-100">
-      {/* Login Section */}
-      <div className="half left d-flex flex-column justify-content-center align-items-center text-center p-5">
-        <h2 className="mb-4 text-light">🔑 Login</h2>
-        <p className="text-light">
-          If you already have an account, enter here!
-        </p>
-        <Link
-          to="/login"
-          className="btn btn-primary btn-lg shadow-lg arcade-btn mt-3">
-          🚀 Sign In
-        </Link>
-      </div>
+    <div className="auth-page d-flex justify-content-center align-items-center">
+      <div className="text-center">
+        <h1 className="arcade-title mb-5" style={{ fontSize: "60px" }}>
+          🎮 EXAMINA
+        </h1>
 
-      {/* Register Section */}
-      <div className="half right d-flex flex-column justify-content-center align-items-center text-center p-5">
-        <h2 className="mb-4 text-light">🏆 Register New Student</h2>
-        <p className="text-light">
-          Start your learning journey and earn points & achievements!
-        </p>
-        <Link
-          to="/register"
-          className="btn btn-success btn-lg shadow-lg arcade-btn mt-3">
-          🌟 Register Now
-        </Link>
+        <div className="d-flex gap-4 justify-content-center">
+          <Link to="/login" className="btn arcade-button text-white px-5">
+            🔑 LOGIN
+          </Link>
+
+          <Link to="/register" className="btn arcade-button text-white px-5">
+            🏆 REGISTER
+          </Link>
+        </div>
       </div>
     </div>
   );

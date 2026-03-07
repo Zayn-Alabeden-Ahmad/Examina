@@ -13,7 +13,7 @@ def apply_teacher_rating(teacher_id, total_points, rated_count):
     teacher.StarTotalPoints = (teacher.StarTotalPoints or 0) + total_points
     teacher.RatingCount = (teacher.RatingCount or 0) + rated_count
 
-    avg_rating = teacher.StarTotalPoints / teacher.RatingCount if teacher.RatingCount else 0
+    avg_rating = teacher.StarTotalPoints / teacher.RatingCount if teacher.RatingCount > 0 else 0
 
     new_star_level = StarLevel.objects.filter(
         MinRating__lte=avg_rating,

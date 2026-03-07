@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path 
 from core.views import StudentRegisterView
 from core.views import LoginView, LogoutView , HomeView , CreateQuestionAPIView , UpdateQuestionAPIView , DeleteQuestionAPIView , GetMyQuestionsAPIView
 

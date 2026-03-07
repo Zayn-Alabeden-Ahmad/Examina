@@ -3,7 +3,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./Auth.css";
-
+import "./arcade.css";
+import api from "../api";
 export default function Register() {
   const [first_name, setFirstName] = useState("");
   const [last_name, setLastName] = useState("");
@@ -15,68 +16,70 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(
-        "http://localhost:8000/api/register/student/",
-        { first_name, last_name, email, password }
-      );
+      const res = await api.post("/register/student/", {
+        first_name,
+        last_name,
+        email,
+        password,
+      });
       localStorage.setItem("access", res.data.access);
       localStorage.setItem("refresh", res.data.refresh);
-      navigate("/Dashboard");
+      navigate("/dashboard");
     } catch (err) {
       setError("❌ Registration failed.");
     }
   };
 
   return (
-    <div className="auth-page d-flex justify-content-center align-items-center vh-100">
-      <div className="card p-4 shadow-lg auth-card">
-        <h2 className="text-center mb-4 text-success">
-          🎉 Register New Student
-        </h2>
+    <div className="auth-page d-flex justify-content-center align-items-center">
+      <div className="arcade-card p-4">
+        <h2 className="text-center arcade-title mb-4">🎮 CREATE PLAYER</h2>
+
         {error && <div className="alert alert-danger">{error}</div>}
+
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
-            <label className="form-label">First Name</label>
             <input
               type="text"
-              className="form-control"
+              className="form-control arcade-input"
+              placeholder="First Name"
               value={first_name}
               onChange={(e) => setFirstName(e.target.value)}
-              required
             />
           </div>
+
           <div className="mb-3">
-            <label className="form-label">Last Name</label>
             <input
               type="text"
-              className="form-control"
+              className="form-control arcade-input"
+              placeholder="Last Name"
               value={last_name}
               onChange={(e) => setLastName(e.target.value)}
-              required
             />
           </div>
+
           <div className="mb-3">
-            <label className="form-label">Email</label>
             <input
               type="email"
-              className="form-control"
+              className="form-control arcade-input"
+              placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
             />
           </div>
-          <div className="mb-3">
-            <label className="form-label">Password</label>
+
+          <div className="mb-4">
             <input
               type="password"
-              className="form-control"
+              className="form-control arcade-input"
+              placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
             />
           </div>
-          <button className="btn btn-success w-100 arcade-btn">
-            Start Your Learning 🌟
+
+          <button className="btn arcade-button w-100 text-white">
+            🌟 CREATE ACCOUNT
           </button>
         </form>
       </div>
