@@ -25,9 +25,9 @@ class Teacher(models.Model):
     Person = models.OneToOneField(Person, on_delete=models.CASCADE)
     Age = models.IntegerField()
     
-    StarTotalPoints = models.IntegerField(default=0)  # مجموع نقاط التقييم (لحساب المتوسط)
-    RatingCount = models.IntegerField(default=0)      # عدد مرات تقييم أسئلة الأستاذ
-    Stared = models.BooleanField(default=False)       # True إذا حصل على نجمة واحدة على الأقل
+    StarTotalPoints = models.IntegerField(default=0)
+    RatingCount = models.IntegerField(default=0)
+    Stared = models.BooleanField(default=False) # سيتم تحديثه تلقائياً الآن
     StarLevel = models.ForeignKey(
         'StarLevel', 
         on_delete=models.SET_NULL, 
@@ -35,15 +35,14 @@ class Teacher(models.Model):
         blank=True,
         default=None,
         related_name='teachers'
-    )  # يمثل عدد النجوم الحالي حسب المستوى
-
+    )
 
     QuestionsAdded = models.IntegerField(default=0)
     QuestionsEdited = models.IntegerField(default=0)
     QuestionsDeleted = models.IntegerField(default=0)
-
     Permissions = models.BooleanField(default=True)
     Manager = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL)
+
 
     def __str__(self):
         return f'Teacher {self.Person.first_name} {self.Person.last_name}'

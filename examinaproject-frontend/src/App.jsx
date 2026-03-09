@@ -4,8 +4,9 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./ProtectedRoute";
-import QuizPage from "./pages/QuizPage";
 import Categories from "./pages/Categories";
+import QuizPage from "./pages/QuizPage";
+import Achievements from "./pages/Achievements";
 
 function App() {
   return (
@@ -32,10 +33,18 @@ function App() {
           }
         />
         <Route
-          path="/quiz/:category_name"
+          path="/quiz/:categoryName"
           element={
             <ProtectedRoute>
               <QuizPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/achievements"
+          element={
+            <ProtectedRoute>
+              <Achievements />
             </ProtectedRoute>
           }
         />

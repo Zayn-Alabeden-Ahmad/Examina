@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api";
+import api from "../api/apiService";
+import Swal from "sweetalert2";
 import "./arcade.css";
 
 export default function Categories() {
@@ -16,18 +17,19 @@ export default function Categories() {
   };
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchInitialData = async () => {
       try {
-        const res = await api.get("/exams/category/");
-        // تأكد أن res.data تصل كـ [{CategoryName: "Math"}, ...]
-        setCategories(res.data);
+        // جلب الأصناف
+        const resCat = await api.get("/exams/category/");
+        setCategories(resCat.data);
       } catch (err) {
-        console.error("Database Connection Error:", err);
+        console.error("Error loading categories or achievements:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchCategories();
+
+    fetchInitialData();
   }, []);
 
   if (loading) {

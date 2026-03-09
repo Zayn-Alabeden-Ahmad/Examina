@@ -1,0 +1,50 @@
+.quiz-page {
+  background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+}
+
+.answer-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid #334155;
+  color: white;
+  border-radius: 8px;
+  transition: all 0.2s;
+  font-weight: bold;
+}
+
+.answer-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #facc15;
+}
+
+.answer-btn.selected {
+  background: #facc15;
+  color: #000;
+  border-color: #fff;
+  box-shadow: 0 0 15px #facc15;
+}
+
+.progress-container {
+  height: 10px;
+  background: #334155;
+  border-radius: 5px;
+  overflow: hidden;
+  border: 1px solid #facc15;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #facc15, #fb923c);
+  transition: width 0.3s ease;
+}
+
+.star {
+  font-size: 24px;
+  cursor: pointer;
+  filter: grayscale(100%);
+  transition: 0.2s;
+}
+
+.star.active {
+  filter: grayscale(0%);
+  text-shadow: 0 0 10px #facc15;
+}

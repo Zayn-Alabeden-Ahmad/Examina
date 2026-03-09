@@ -9,7 +9,7 @@ from core.serializers import StudentRegisterSerializer , LoginSerializer , MyTok
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated , AllowAny
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from achievements.utils import check_and_award_achievements
+
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
@@ -76,41 +76,31 @@ class HomeView(APIView):
     def get(self, request):
         user = request.user
 
-       
-        new_achievements = check_and_award_achievements(request.user)
-
         if hasattr(user, 'teacher'):
             teacher = user.teacher
-     
-            num_stars = teacher.StarLevel.NumStars if teacher.StarLevel else 0
-            
             data = {
-                "role": "teacher",
                 "name": user.first_name,
-                "stared": teacher.Stared,
-                "NumStars": num_stars,
+                "stared":teacher.Stared,
+                "NumStars": teacher.StarLevel.NumStars if teacher.StarLevel else 0,
                 "status": user.Status,
                 "profile_picture": user.profile.ProfilePicture.url if user.profile.ProfilePicture else None,
+
             }
         elif hasattr(user, 'student'):
             student = user.student
             data = {
-                "role": "student",
                 "name": user.first_name,
                 "points": student.StudentPoints,
                 "level": student.Level.LevelName if student.Level else None,
-                "subLevel": student.Level.subLevel if student.Level else None,
+                "subLevel":student.Level.subLevel,
                 "status": user.Status,
                 "profile_picture": user.profile.ProfilePicture.url if user.profile.ProfilePicture else None,
+                
             }
-        else:
-            return Response({"error": "User role not found"}, status=status.HTTP_400_BAD_REQUEST)
+       
+            
+        return Response(data)
 
-        return Response({
-            "user_data": data,
-            "new_achievements": new_achievements
-        }, status=status.HTTP_200_OK)
-    
 
 
    
@@ -122,6 +112,7 @@ from exams.serializers import QuestionSerializer
 from .utils import award_teacher_question_achievements
 
 
+ 
 class CreateQuestionAPIView(APIView):
     permission_classes = (IsAuthenticated,)  # فقط نثق بالـ router أنه خاص بالأساتذة
 
@@ -137,7 +128,7 @@ class CreateQuestionAPIView(APIView):
         teacher.save(update_fields=['QuestionsAdded'])
 
         # منح إنجازات الأسئلة
-        new_awards = check_and_award_achievements(request.teacher)
+        new_awards = award_teacher_question_achievements(teacher)
 
         return Response({
             "status": "created",

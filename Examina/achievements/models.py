@@ -8,7 +8,7 @@ from core.models import Person
 class Achievement(models.Model):
     ACTIVITY_CHOICES = [
         ('stars', 'Stars'),       # إنجاز مرتبط بعدد النجوم
-        ('studnet', 'Studnet'),                
+        ('student', 'Student'),                
         ('questions_added', 'Questions Added'),# إنجاز مرتبط بعدد الأسئلة المضافة
         ('questions_edited', 'Questions Edited'),# تعديل الأسئلة
         ('questions_deleted', 'Questions Deleted'),# حذف الأسئلة
@@ -33,7 +33,6 @@ class UserAchievement(models.Model):
     Person = models.ForeignKey(Person, on_delete=models.CASCADE)
     Achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE)
     DateEarned = models.DateField()
-    is_notified = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.Person.first_name} - {self.Achievement.Name}'

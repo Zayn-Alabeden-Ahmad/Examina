@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import api from "../api";
+import api from "../api/apiService";
 import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
 import "./Dashboard.css";
 import "./arcade.css";
 
@@ -9,60 +8,23 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [userType, setUserType] = useState(null);
   const navigate = useNavigate();
-
-  // 1. دالة عرض تنبيهات الإنجازات بتنسيق الأركيد
-  const showAchievementAlerts = async (achievements) => {
-    for (const ach of achievements) {
-      await Swal.fire({
-        title: "ACHIEVEMENT UNLOCKED! 🏆",
-        html: `
-          <div class="arcade-font" style="color: #fff; text-align: center;">
-            <h4 style="color: #facc15; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;">${ach.name}</h4>
-            <p style="font-size: 0.9rem; line-height: 1.5; color: #e2e8f0;">${ach.description}</p>
-          </div>
-        `,
-        imageUrl:
-          ach.image ||
-          "https://cdn-icons-png.flaticon.com/512/1904/1904425.png",
-        imageWidth: 120,
-        imageHeight: 120,
-        background: "#0f172a",
-        confirmButtonText: "COLLECT REWARD",
-        confirmButtonColor: "#facc15",
-        buttonsStyling: true,
-        backdrop: `rgba(15, 23, 42, 0.9)`,
-        customClass: {
-          popup: "arcade-border-gold",
-          title: "text-warning arcade-font",
-        },
-      });
-    }
-  };
+  const [hasNewAchievement, setHasNewAchievement] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // طلب البيانات من السيرفر
         const res = await api.get("/home/");
-
-        // طباعة البيانات في الكونسول للتأكد من وصول new_achievements
-        console.log("Dashboard Data:", res.data);
-
-        // استخراج بيانات المستخدم (حسب هيكلة الـ JSON الخاص بك)
         const userData = res.data.user_data || res.data;
         setUser(userData);
 
-        // تحديد نوع المستخدم (طالب أم مدرس)
+        if (res.data.has_new_achievements) {
+          setHasNewAchievement(true);
+        }
+
         if (userData.points !== undefined || userData.role === "student") {
           setUserType("student");
         } else {
           setUserType("teacher");
-        }
-
-        // 2. التحقق من الإنجازات الجديدة التي لم يتم الإخطار بها بعد
-        const achievements = res.data.new_achievements;
-        if (achievements && achievements.length > 0) {
-          showAchievementAlerts(achievements);
         }
       } catch (err) {
         console.error("Error loading dashboard:", err);
@@ -72,7 +34,6 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
-  // حالة التحميل
   if (!user) {
     return (
       <div className="vh-100 d-flex justify-content-center align-items-center text-light arcade-font">
@@ -93,12 +54,27 @@ export default function Dashboard() {
     }
   };
 
-  const PrintStars = (starsCount) => {
-    let stars = "";
-    for (let i = 0; i < starsCount; i++) {
-      stars += "⭐";
-    }
-    return stars;
+  // --- التعديل المطلوب: دالة عرض النجوم بحد أقصى 5 ---
+  const RenderStarLevel = (numStars) => {
+    return (
+      <div className="d-inline-flex gap-1 align-items-center">
+        {[1, 2, 3, 4, 5].map((index) => (
+          <span
+            key={index}
+            style={{
+              fontSize: "18px",
+              // إذا كان رقم النجمة الحالي أقل أو يساوي عدد نجوم المستخدم تظهر ملونة
+              filter:
+                index <= numStars
+                  ? "grayscale(0%)"
+                  : "grayscale(100%) opacity(0.3)",
+              transition: "0.3s",
+            }}>
+            ⭐
+          </span>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -107,7 +83,6 @@ export default function Dashboard() {
       style={{
         background: "linear-gradient(to bottom, #0f172a, #1e3a8a, #2563eb)",
       }}>
-      {/* Navbar Section */}
       <div
         className="container-fluid py-3"
         style={{
@@ -158,8 +133,17 @@ export default function Dashboard() {
               )}
               {userType === "teacher" && (
                 <div>
-                  <strong className="text-warning">Star Level:</strong>{" "}
-                  {user.NumStars > 0 ? PrintStars(user.NumStars) : "🧑🏻‍🏫"}
+                  <strong className="text-warning">Stars:</strong>{" "}
+                  {
+                    user.NumStars > 0
+                      ? // تكرار رمز النجمة بناءً على الرقم القادم من السيرفر
+                        Array.from({ length: user.NumStars }).map((_, i) => (
+                          <span key={i} style={{ color: "#facc15" }}>
+                            ⭐
+                          </span>
+                        ))
+                      : "No stars yet 🧑🏻‍🏫" // في حالة StarID 13
+                  }
                 </div>
               )}
               <div>
@@ -183,7 +167,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Main Content Area */}
       <div className="container py-5">
         <div className="row justify-content-center">
           <div className="col-md-10 text-center">
@@ -242,21 +225,41 @@ export default function Dashboard() {
                     style={{
                       border: "2px solid #6366f1",
                       background: "rgba(2, 6, 23, 0.6)",
+                      position: "relative",
                     }}>
+                    {hasNewAchievement && (
+                      <span
+                        className="red-dot" /* استخدام الكلاس المعرف في CSS للنبض */
+                        style={{
+                          position: "absolute",
+                          top: "15px",
+                          right: "15px",
+                          width: "14px",
+                          height: "14px",
+                          backgroundColor: "#ef4444",
+                          borderRadius: "50%",
+                          boxShadow: "0 0 12px #ef4444",
+                          border: "2px solid white",
+                        }}
+                      />
+                    )}
+
                     <div style={{ fontSize: "60px" }} className="mb-3">
                       🏆
                     </div>
                     <h3 className="arcade-title" style={{ color: "#6366f1" }}>
                       {userType === "student"
                         ? "MY ACHIEVEMENTS"
-                        : "MY QUESTIONS"}
+                        : "MY TROPHIES"}
                     </h3>
                     <p className="text-light small">
                       {userType === "student"
                         ? "Check your unlocked badges and rewards."
-                        : "Manage and track your students progress."}
+                        : "track your achievements."}
                     </p>
-                    <button className="btn btn-outline-primary fw-bold mt-3 w-100">
+                    <button
+                      className="btn btn-outline-primary fw-bold mt-3 w-100"
+                      onClick={() => navigate("/achievements")}>
                       VIEW DETAILS
                     </button>
                   </div>
