@@ -11,7 +11,8 @@ class Achievement(models.Model):
         ('student', 'Student'),                
         ('questions_added', 'Questions Added'),# إنجاز مرتبط بعدد الأسئلة المضافة
         ('questions_edited', 'Questions Edited'),# تعديل الأسئلة
-        ('questions_deleted', 'Questions Deleted'),# حذف الأسئلة
+        ('questions_deleted', 'Questions Deleted'),
+        ('challenge', 'Challenge'),
     ]
 
     AchievementID = models.AutoField(primary_key=True)

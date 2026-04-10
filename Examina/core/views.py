@@ -90,6 +90,7 @@ class HomeView(APIView):
             student = user.student
             data = {
                 "name": user.first_name,
+                "student_id": student.StudentID, # i added this
                 "points": student.StudentPoints,
                 "level": student.Level.LevelName if student.Level else None,
                 "subLevel":student.Level.subLevel,
@@ -206,3 +207,80 @@ class GetMyQuestionsAPIView(APIView):
     
 
     
+from rest_framework import generics, permissions
+from .serializers import UserProfileSerializer
+
+class UserProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        # إعادة كائن المستخدم الحالي فقط
+        return self.request.user
+    
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import Student, Teacher
+from .serializers import StudentLeaderboardSerializer, TeacherLeaderboardSerializer , AchievementSerializer
+
+class StudentLeaderboardView(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request):
+        # الترتيب حسب النقاط تنازلياً
+        students = Student.objects.select_related('Person__profile', 'Level').all().order_by('-StudentPoints')
+        serializer = StudentLeaderboardSerializer(students, many=True)
+        return Response(serializer.data)
+
+class TeacherLeaderboardView(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request):
+        # الترتيب حسب عدد النجوم من جدول StarLevel
+        teachers = Teacher.objects.select_related('Person__profile', 'StarLevel').all().order_by('-StarLevel__NumStars')
+        serializer = TeacherLeaderboardSerializer(teachers, many=True)
+        return Response(serializer.data)
+    
+
+
+
+class StudentDetailView(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request, pk):
+        try:
+            student = Student.objects.get(StudentID=pk)
+            # جلب الإنجازات المرتبطة بالطالب
+            achievements = student.Person.userachievement_set.all() # عدل الـ Related Name حسب مشروعك
+            
+            data = {
+                "first_name": student.Person.first_name,
+                "last_name": student.Person.last_name,
+                "profile_picture": student.Person.profile.ProfilePicture.url if student.Person.profile.ProfilePicture else None,
+                "student_points": student.StudentPoints,
+                "level": student.Level.LevelName,
+                "bio": student.Person.profile.Bio,
+                "achievements": AchievementSerializer(achievements, many=True).data
+            }
+            return Response(data)
+        except Student.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+# في views.py داخل TeacherDetailView
+
+class TeacherDetailView(APIView):
+    permission_classes = (IsAuthenticated,)
+    def get(self, request, pk):
+        try:
+            teacher = Teacher.objects.get(TeacherID=pk)
+            achievements = teacher.Person.userachievement_set.all()
+            
+            data = {
+                "first_name": teacher.Person.first_name,
+                "last_name": teacher.Person.last_name,
+                # التعديل هنا: نستخدم NumStars أو Description لأن LevelName غير موجود
+                "star_level": f"{teacher.StarLevel.NumStars} Stars" if teacher.StarLevel else "No Stars",
+                "profile_picture": teacher.Person.profile.ProfilePicture.url if teacher.Person.profile.ProfilePicture else None,
+                "bio": teacher.Person.profile.Bio,
+                "achievements": AchievementSerializer(achievements, many=True).data
+            }
+            return Response(data)
+        except Teacher.DoesNotExist:
+            return Response({"error": "Teacher not found"}, status=status.HTTP_404_NOT_FOUND)

@@ -34,7 +34,7 @@ class ChallengeExam(models.Model):
     PenaltyPoints = models.IntegerField(default=0)
     CreatedAt = models.DateTimeField(auto_now_add=True)
     IsUnlocked = models.BooleanField(default=False)
-    MinLevelRequired = models.IntegerField()
+    MinPointsRequired = models.IntegerField()
     PreviousChallengeID = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL)
 
     def __str__(self):
@@ -46,13 +46,15 @@ class StudentChallenge(models.Model):
     StudentChallengeID = models.AutoField(primary_key=True)
     Student = models.ForeignKey(Student, on_delete=models.CASCADE)
     ChallengeExam = models.ForeignKey(ChallengeExam, on_delete=models.CASCADE)
+    Questions = models.ManyToManyField('Question', related_name='challenge_attempts')
     ChallengeStatus = models.CharField(max_length=50)
-    ChallengeScore = models.IntegerField()
+    ChallengeScore = models.IntegerField(null=True)
     LevelAtAttempt = models.IntegerField(default=0)
     AttemptsCount = models.IntegerField(default=1)
     StartDate = models.DateTimeField()
     EndDate = models.DateTimeField()
     IsCompleted = models.BooleanField(default=False)
+    Scoreofchallenge = models.IntegerField(null=True)
 
     def __str__(self):
         return f'{self.Student.Person.first_name} - {self.ChallengeExam.ChallengeName}'

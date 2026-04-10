@@ -7,7 +7,10 @@ import ProtectedRoute from "./ProtectedRoute";
 import Categories from "./pages/Categories";
 import QuizPage from "./pages/QuizPage";
 import Achievements from "./pages/Achievements";
-
+import ManageQuestions from "./pages/ManageQuestions";
+import TeacherChallenges from "./pages/TeacherChallenges";
+import StudentChallenges from "./pages/StudentChallenges";
+import MissionRoom from "./pages/MissionRoom";
 function App() {
   return (
     <Router>
@@ -45,6 +48,24 @@ function App() {
           element={
             <ProtectedRoute>
               <Achievements />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/questions"
+          element={
+            <ProtectedRoute>
+              <ManageQuestions />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/teacher-challenges" element={<TeacherChallenges />} />
+        <Route path="/challenges-list" element={<StudentChallenges />} />
+        <Route
+          path="/mission/:challengeId"
+          element={
+            <ProtectedRoute>
+              <MissionRoom />
             </ProtectedRoute>
           }
         />

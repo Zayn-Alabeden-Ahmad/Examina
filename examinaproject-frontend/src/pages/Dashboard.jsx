@@ -15,10 +15,23 @@ export default function Dashboard() {
       try {
         const res = await api.get("/home/");
         const userData = res.data.user_data || res.data;
-        setUser(userData);
+
+        if (userData && userData.student_id) {
+          setUser(userData);
+          localStorage.setItem("studentId", userData.student_id);
+        } else if (userData) {
+          setUser(userData);
+        } else {
+          console.error("student_id not found in response");
+        }
 
         if (res.data.has_new_achievements) {
           setHasNewAchievement(true);
+        }
+
+        // تخزين الـ student_id لاستخدامه في جلب التحديات لاحقاً
+        if (userData.student_id) {
+          localStorage.setItem("studentId", userData.student_id);
         }
 
         if (userData.points !== undefined || userData.role === "student") {
@@ -48,33 +61,11 @@ export default function Dashboard() {
       await api.post("/logout/", { refresh });
       localStorage.removeItem("access");
       localStorage.removeItem("refresh");
+      localStorage.removeItem("studentId");
       window.location.href = "/";
     } catch (err) {
       console.log("Logout failed", err);
     }
-  };
-
-  // --- التعديل المطلوب: دالة عرض النجوم بحد أقصى 5 ---
-  const RenderStarLevel = (numStars) => {
-    return (
-      <div className="d-inline-flex gap-1 align-items-center">
-        {[1, 2, 3, 4, 5].map((index) => (
-          <span
-            key={index}
-            style={{
-              fontSize: "18px",
-              // إذا كان رقم النجمة الحالي أقل أو يساوي عدد نجوم المستخدم تظهر ملونة
-              filter:
-                index <= numStars
-                  ? "grayscale(0%)"
-                  : "grayscale(100%) opacity(0.3)",
-              transition: "0.3s",
-            }}>
-            ⭐
-          </span>
-        ))}
-      </div>
-    );
   };
 
   return (
@@ -83,6 +74,7 @@ export default function Dashboard() {
       style={{
         background: "linear-gradient(to bottom, #0f172a, #1e3a8a, #2563eb)",
       }}>
+      {/* Header Section */}
       <div
         className="container-fluid py-3"
         style={{
@@ -134,16 +126,13 @@ export default function Dashboard() {
               {userType === "teacher" && (
                 <div>
                   <strong className="text-warning">Stars:</strong>{" "}
-                  {
-                    user.NumStars > 0
-                      ? // تكرار رمز النجمة بناءً على الرقم القادم من السيرفر
-                        Array.from({ length: user.NumStars }).map((_, i) => (
-                          <span key={i} style={{ color: "#facc15" }}>
-                            ⭐
-                          </span>
-                        ))
-                      : "No stars yet 🧑🏻‍🏫" // في حالة StarID 13
-                  }
+                  {user.NumStars > 0
+                    ? Array.from({ length: user.NumStars }).map((_, i) => (
+                        <span key={i} style={{ color: "#facc15" }}>
+                          ⭐
+                        </span>
+                      ))
+                    : "No stars yet 🧑🏻‍🏫"}
                 </div>
               )}
               <div>
@@ -167,9 +156,10 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Main Content */}
       <div className="container py-5">
         <div className="row justify-content-center">
-          <div className="col-md-10 text-center">
+          <div className="col-md-11 text-center">
             <div
               className="p-5 rounded"
               style={{
@@ -194,76 +184,222 @@ export default function Dashboard() {
               </p>
 
               <div className="row g-4 justify-content-center">
+                {/* --- STUDENT VIEW --- */}
                 {userType === "student" && (
-                  <div className="col-md-6">
-                    <div
-                      className="arcade-card p-4 h-100 category-hover-effect"
-                      onClick={() => navigate("/categories")}
-                      style={{
-                        cursor: "pointer",
-                        border: "2px solid #facc15",
-                        background: "rgba(30, 58, 138, 0.4)",
-                        transition: "0.3s",
-                      }}>
-                      <div style={{ fontSize: "60px" }} className="mb-3">
-                        📝
+                  <>
+                    <div className="col-md-4">
+                      <div
+                        className="arcade-card p-4 h-100 category-hover-effect d-flex flex-column"
+                        onClick={() => navigate("/categories")}
+                        style={{
+                          cursor: "pointer",
+                          border: "2px solid #facc15",
+                          background: "rgba(30, 58, 138, 0.4)",
+                          transition: "0.3s",
+                        }}>
+                        <div style={{ fontSize: "60px" }} className="mb-3">
+                          📝
+                        </div>
+                        <h3 className="arcade-title text-warning">
+                          ENROLL EXAM
+                        </h3>
+                        <p className="text-light small">
+                          Choose your category, defeat the questions, and rank
+                          up!
+                        </p>
+                        <div className="mt-auto">
+                          <button className="btn btn-warning fw-bold w-100 shadow arcade-font-btn">
+                            START MISSION
+                          </button>
+                        </div>
                       </div>
-                      <h3 className="arcade-title text-warning">ENROLL EXAM</h3>
-                      <p className="text-light small">
-                        Choose your category, defeat the questions, and rank up!
-                      </p>
-                      <button className="btn btn-warning fw-bold mt-3 w-100 shadow">
-                        START MISSION
-                      </button>
                     </div>
-                  </div>
+
+                    {/* NEW: CHALLENGES CARD */}
+                    <div className="col-md-4">
+                      <div
+                        className="arcade-card p-4 h-100 d-flex flex-column category-hover-effect"
+                        onClick={() => navigate("/challenges-list")}
+                        style={{
+                          cursor: "pointer",
+                          border: "2px solid #a855f7",
+                          background: "rgba(88, 28, 135, 0.4)",
+                          boxShadow: "0 0 15px rgba(168, 85, 247, 0.3)",
+                          transition: "0.3s",
+                        }}>
+                        <div
+                          style={{ fontSize: "60px" }}
+                          className="mb-3 text-center">
+                          🔥
+                        </div>
+                        <h3
+                          className="arcade-title text-center"
+                          style={{ color: "#d8b4fe" }}>
+                          CHALLENGES
+                        </h3>
+                        <p className="text-light small text-center">
+                          Face boss-level missions and earn massive rewards!
+                        </p>
+                        <div className="mt-auto">
+                          <button
+                            className="btn fw-bold w-100 shadow arcade-font-btn"
+                            style={{
+                              backgroundColor: "#a855f7",
+                              color: "white",
+                              border: "none",
+                              height: "50px",
+                            }}>
+                            ENTER ARENA
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* My Trophies */}
+                    <div className="col-md-4">
+                      <div
+                        className="arcade-card p-4 h-100 d-flex flex-column category-hover-effect"
+                        onClick={() => navigate("/achievements")}
+                        style={{
+                          cursor: "pointer",
+                          border: "2px solid #facc15",
+                          background: "rgba(66, 32, 6, 0.4)",
+                          boxShadow: "0 0 15px rgba(250, 204, 21, 0.3)",
+                          transition: "0.3s",
+                          position: "relative",
+                        }}>
+                        {hasNewAchievement && (
+                          <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow">
+                            NEW
+                          </span>
+                        )}
+                        <div
+                          style={{ fontSize: "60px" }}
+                          className="mb-3 text-center">
+                          🏆
+                        </div>
+                        <h3 className="arcade-title text-warning text-center">
+                          MY TROPHIES
+                        </h3>
+                        <p className="text-light small text-center">
+                          Track your personal milestones and earned badges.
+                        </p>
+                        <div className="mt-auto">
+                          <button
+                            className="btn btn-warning fw-bold w-100 shadow arcade-font-btn"
+                            style={{ height: "50px" }}>
+                            VIEW DETAILS
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </>
                 )}
 
-                <div className="col-md-6">
-                  <div
-                    className="arcade-card p-4 h-100 shadow-sm"
-                    style={{
-                      border: "2px solid #6366f1",
-                      background: "rgba(2, 6, 23, 0.6)",
-                      position: "relative",
-                    }}>
-                    {hasNewAchievement && (
-                      <span
-                        className="red-dot" /* استخدام الكلاس المعرف في CSS للنبض */
+                {/* --- TEACHER VIEW --- */}
+                {userType === "teacher" && (
+                  <>
+                    <div className="col-md-4">
+                      <div
+                        className="arcade-card p-4 h-100 d-flex flex-column category-hover-effect"
+                        onClick={() => navigate("/questions")}
                         style={{
-                          position: "absolute",
-                          top: "15px",
-                          right: "15px",
-                          width: "14px",
-                          height: "14px",
-                          backgroundColor: "#ef4444",
-                          borderRadius: "50%",
-                          boxShadow: "0 0 12px #ef4444",
-                          border: "2px solid white",
-                        }}
-                      />
-                    )}
-
-                    <div style={{ fontSize: "60px" }} className="mb-3">
-                      🏆
+                          cursor: "pointer",
+                          border: "2px solid #ef4444",
+                          background: "rgba(127, 29, 29, 0.4)",
+                          boxShadow: "0 0 15px rgba(239, 68, 68, 0.3)",
+                        }}>
+                        <div
+                          style={{ fontSize: "60px" }}
+                          className="mb-3 text-center">
+                          ⚙️
+                        </div>
+                        <h3 className="arcade-title text-danger text-center">
+                          MISSION CONTROL
+                        </h3>
+                        <p className="text-light small text-center">
+                          Manage your question database and create new missions.
+                        </p>
+                        <div className="mt-auto">
+                          <button
+                            className="btn btn-danger fw-bold w-100 shadow arcade-font-btn"
+                            style={{ height: "50px" }}>
+                            MANAGE QUESTIONS
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <h3 className="arcade-title" style={{ color: "#6366f1" }}>
-                      {userType === "student"
-                        ? "MY ACHIEVEMENTS"
-                        : "MY TROPHIES"}
-                    </h3>
-                    <p className="text-light small">
-                      {userType === "student"
-                        ? "Check your unlocked badges and rewards."
-                        : "track your achievements."}
-                    </p>
-                    <button
-                      className="btn btn-outline-primary fw-bold mt-3 w-100"
-                      onClick={() => navigate("/achievements")}>
-                      VIEW DETAILS
-                    </button>
-                  </div>
-                </div>
+
+                    <div className="col-md-4">
+                      <div
+                        className="arcade-card p-4 h-100 d-flex flex-column category-hover-effect"
+                        onClick={() => navigate("/teacher-challenges")}
+                        style={{
+                          cursor: "pointer",
+                          border: "2px solid #06b6d4",
+                          background: "rgba(8, 51, 68, 0.4)",
+                          boxShadow: "0 0 15px rgba(6, 182, 212, 0.3)",
+                        }}>
+                        <div
+                          style={{ fontSize: "60px" }}
+                          className="mb-3 text-center">
+                          🚀
+                        </div>
+                        <h3
+                          className="arcade-title text-center"
+                          style={{ color: "#06b6d4" }}>
+                          QUEST GRID
+                        </h3>
+                        <p className="text-light small text-center">
+                          Deploy new challenges and set point requirements.
+                        </p>
+                        <div className="mt-auto">
+                          <button
+                            className="btn fw-bold w-100 shadow arcade-font-btn"
+                            style={{
+                              backgroundColor: "#06b6d4",
+                              color: "white",
+                              border: "none",
+                              height: "50px",
+                            }}>
+                            MANAGE CHALLENGES
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="col-md-4">
+                      <div
+                        className="arcade-card p-4 h-100 d-flex flex-column category-hover-effect"
+                        onClick={() => navigate("/achievements")}
+                        style={{
+                          cursor: "pointer",
+                          border: "2px solid #facc15",
+                          background: "rgba(66, 32, 6, 0.4)",
+                          boxShadow: "0 0 15px rgba(250, 204, 21, 0.3)",
+                        }}>
+                        <div
+                          style={{ fontSize: "60px" }}
+                          className="mb-3 text-center">
+                          🏆
+                        </div>
+                        <h3 className="arcade-title text-warning text-center">
+                          MY TROPHIES
+                        </h3>
+                        <p className="text-light small text-center">
+                          Track your personal teaching milestones.
+                        </p>
+                        <div className="mt-auto">
+                          <button
+                            className="btn btn-warning fw-bold w-100 shadow arcade-font-btn"
+                            style={{ height: "50px" }}>
+                            VIEW DETAILS
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

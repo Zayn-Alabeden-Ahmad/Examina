@@ -1,0 +1,60 @@
+.manage-questions-page {
+  background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+  color: white;
+}
+
+.border-arcade {
+  border: 3px solid #facc15 !important;
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
+}
+
+.arcade-input {
+  background: #1e293b !important;
+  border: 1px solid #475569 !important;
+  color: #facc15 !important;
+}
+
+.arcade-input:focus {
+  border-color: #facc15 !important;
+  box-shadow: 0 0 10px #facc15 !important;
+}
+
+.arcade-table {
+  border-collapse: separate;
+  border-spacing: 0 10px;
+}
+
+.arcade-table tr {
+  background: rgba(30, 41, 59, 0.5);
+  transition: 0.3s;
+}
+
+.arcade-table tr:hover {
+  background: rgba(51, 65, 85, 0.8) !important;
+  transform: scale(1.01);
+}
+
+/* Modal Styling */
+.arcade-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.arcade-modal-content {
+  background: #0f172a;
+  padding: 2rem;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+}

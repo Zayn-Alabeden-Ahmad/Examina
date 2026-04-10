@@ -1,10 +1,11 @@
 // src/pages/Register.jsx
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // أضفنا Link هنا
 import axios from "axios";
 import "./Auth.css";
 import "./arcade.css";
 import api from "../api/apiService";
+
 export default function Register() {
   const [first_name, setFirstName] = useState("");
   const [last_name, setLastName] = useState("");
@@ -38,43 +39,51 @@ export default function Register() {
         {error && <div className="alert alert-danger">{error}</div>}
 
         <form onSubmit={handleSubmit}>
+          {/* First Name */}
           <div className="mb-3">
+            <label className="form-label text-light">First Name</label>
             <input
               type="text"
               className="form-control arcade-input"
-              placeholder="First Name"
               value={first_name}
               onChange={(e) => setFirstName(e.target.value)}
+              required
             />
           </div>
 
+          {/* Last Name */}
           <div className="mb-3">
+            <label className="form-label text-light">Last Name</label>
             <input
               type="text"
               className="form-control arcade-input"
-              placeholder="Last Name"
               value={last_name}
               onChange={(e) => setLastName(e.target.value)}
+              required
             />
           </div>
 
+          {/* Email */}
           <div className="mb-3">
+            <label className="form-label text-light">Email</label>
             <input
               type="email"
               className="form-control arcade-input"
-              placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
 
+          {/* Password */}
           <div className="mb-4">
+            <label className="form-label text-light">Password</label>
             <input
               type="password"
               className="form-control arcade-input"
-              placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
 
@@ -82,6 +91,11 @@ export default function Register() {
             🌟 CREATE ACCOUNT
           </button>
         </form>
+
+        {/* رابط العودة لتسجيل الدخول لجعل التصميم متناظراً */}
+        <p className="text-center text-light mt-3">
+          Already a player? <Link to="/login">Login</Link>
+        </p>
       </div>
     </div>
   );

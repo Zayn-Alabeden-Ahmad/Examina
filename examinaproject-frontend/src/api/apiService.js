@@ -35,5 +35,26 @@ export const registerStudent = (data) => API.post("/register/student/", data);
 export const loginUser = (data) => API.post("/login/", data);
 export const logoutUser = (refreshToken) =>
   API.post("/logout/", { refresh: refreshToken });
+// Fetch levels for the teacher to select the base difficulty
+export const getLevels = () => API.get("/exams/levels/");
+
+// Create a new Boss Challenge
+export const createChallenge = (challengeData) =>
+  API.post("/exams/challenges/", challengeData);
+
+// Fetch all existing challenges
+export const getAllChallenges = () => API.get("/exams/challenges/");
+
+// جلب التحديات لطالب معين (لحساب الـ IsUnlocked)
+export const getStudentChallenges = (studentId) =>
+  API.get(`/exams/challenges/student/${studentId}/`);
+
+// توليد أسئلة لتحدي معين
+export const generateChallengeQuestions = (challengeId, studentId) =>
+  API.get(`/exams/challenges/${challengeId}/questions/${studentId}`);
+
+// إرسال حل التحدي
+export const submitChallenge = (payload) =>
+  API.post(`/exams/challenges/submit/`, payload);
 
 export default API;

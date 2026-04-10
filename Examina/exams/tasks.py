@@ -10,6 +10,7 @@ def apply_teacher_rating(teacher_id, total_points, rated_count):
     teacher = Teacher.objects.get(pk=teacher_id)
 
     # تحديث النقاط وعدد مرات التقييم بطريقة متزامنة
+    #StarTotalPoints is the points he got from being rated by students
     teacher.StarTotalPoints = (teacher.StarTotalPoints or 0) + total_points
     teacher.RatingCount = (teacher.RatingCount or 0) + rated_count
 
