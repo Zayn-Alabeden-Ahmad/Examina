@@ -8,7 +8,7 @@ export default function Achievements() {
   const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
+  const API_BASE_URL = "http://127.0.0.1:8000";
   useEffect(() => {
     const fetchAchievements = async () => {
       try {
@@ -39,7 +39,7 @@ export default function Achievements() {
         {/* Header Section */}
         <div className="d-flex justify-content-between align-items-center mb-5 border-bottom pb-3 border-primary">
           <div>
-            <h1 className="arcade-title text-warning mb-0">HALL OF FAME</h1>
+            <h1 className="arcade-title text-warning mb-0">Champion’s Shelf</h1>
             <p className="text-info mb-0">
               Your legendary milestones and badges
             </p>
@@ -71,11 +71,20 @@ export default function Achievements() {
                     <div className="icon-wrapper mb-3 text-center">
                       <img
                         src={
-                          item.achievement_details.Image ||
-                          "https://via.placeholder.com/100"
+                          item.achievement_details?.Image
+                            ? item.achievement_details.Image.startsWith("http")
+                              ? item.achievement_details.Image
+                              : `${API_BASE_URL}${item.achievement_details.Image}`
+                            : "https://via.placeholder.com/100"
                         }
-                        alt={item.achievement_details.Name}
+                        alt={item.achievement_details?.Name || "Achievement"}
                         className="achievement-img shadow-lg"
+                        style={{
+                          width: "100px", // حجم مناسب للإنجازات
+                          height: "100px",
+                          objectFit: "contain", // للحفاظ على شكل الأوسمة والجوائز بدون قص
+                          marginBottom: "15px",
+                        }}
                       />
                     </div>
 

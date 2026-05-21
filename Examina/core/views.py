@@ -10,12 +10,12 @@ from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated , AllowAny
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
-def get_tokens_for_user(user):
+'''def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
         'refresh': str(refresh),
         'access': str(refresh.access_token),
-    }
+    }'''
 
 class StudentRegisterView(APIView):
     permission_classes = [AllowAny];
@@ -23,12 +23,12 @@ class StudentRegisterView(APIView):
         serializer = StudentRegisterSerializer(data=request.data)
         if serializer.is_valid():
             person = serializer.save()
-            tokens = get_tokens_for_user(person)
+            tokens = MyTokenObtainPairSerializer.get_token(person)
 
             return Response({
                 "message": "success",
-                "refresh": tokens['refresh'],
-                "access": tokens['access'],
+                "refresh": str(tokens),
+                "access": str(tokens.access_token),
             }, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -192,10 +192,24 @@ class GetMyQuestionsAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        teacher = request.user.teacher  # مضمون أنه موجود
-
-        # إحضار الأسئلة الخاصة بهذا المدرّس فقط
+        teacher = request.user.teacher
         my_questions = Question.objects.filter(Teacher=teacher)
+
+        # Optional filters
+        category = request.query_params.get("category")
+        rate = request.query_params.get("rate")
+
+        if category and category.lower() != "all":
+            my_questions = my_questions.filter(Category=category)
+
+        if rate and rate.lower() != "all":
+            try:
+                my_questions = my_questions.filter(Rate=int(rate))
+            except ValueError:
+                return Response(
+                    {"detail": "Invalid rate value. Use 100, 200, or 300."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
         serializer = QuestionSerializer(my_questions, many=True)
 
@@ -204,7 +218,6 @@ class GetMyQuestionsAPIView(APIView):
             "total": my_questions.count(),
             "questions": serializer.data
         }, status=status.HTTP_200_OK)
-    
 
     
 from rest_framework import generics, permissions
@@ -253,6 +266,7 @@ class StudentDetailView(APIView):
             data = {
                 "first_name": student.Person.first_name,
                 "last_name": student.Person.last_name,
+                "status":student.Person.Status,
                 "profile_picture": student.Person.profile.ProfilePicture.url if student.Person.profile.ProfilePicture else None,
                 "student_points": student.StudentPoints,
                 "level": student.Level.LevelName,
@@ -275,6 +289,7 @@ class TeacherDetailView(APIView):
             data = {
                 "first_name": teacher.Person.first_name,
                 "last_name": teacher.Person.last_name,
+                "status":teacher.Person.Status,
                 # التعديل هنا: نستخدم NumStars أو Description لأن LevelName غير موجود
                 "star_level": f"{teacher.StarLevel.NumStars} Stars" if teacher.StarLevel else "No Stars",
                 "profile_picture": teacher.Person.profile.ProfilePicture.url if teacher.Person.profile.ProfilePicture else None,
@@ -284,3 +299,88 @@ class TeacherDetailView(APIView):
             return Response(data)
         except Teacher.DoesNotExist:
             return Response({"error": "Teacher not found"}, status=status.HTTP_404_NOT_FOUND)
+from django.db.models import Q
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .models import Student
+
+
+class TeacherSearchStudentsView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        q = request.query_params.get("q", "").strip()
+
+        students = Student.objects.select_related(
+            "Person", "Person__profile", "Level"
+        ).all()
+
+        if q:
+            students = students.filter(
+                Q(StudentID__icontains=q) |
+                Q(Person__first_name__icontains=q) |
+                Q(Person__last_name__icontains=q) |
+                Q(Person__email__icontains=q)
+            )
+
+        data = []
+        for s in students[:50]:
+            data.append({
+                "StudentID": s.StudentID,
+                "first_name": s.Person.first_name,
+                "last_name": s.Person.last_name,
+                "email": s.Person.email,
+                "status": s.Person.Status,
+                "level_name": s.Level.LevelName if s.Level else None,
+                "student_points": s.StudentPoints,
+                "profile_picture": (
+                    s.Person.profile.ProfilePicture.url
+                    if hasattr(s.Person, "profile") and s.Person.profile.ProfilePicture
+                    else None
+                ),
+            })
+
+        return Response(data)
+from django.db.models import Q
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .models import Teacher
+
+class TeacherSearchTeachersView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        q = request.query_params.get("q", "").strip()
+
+        teachers = Teacher.objects.select_related(
+            "Person", "Person__profile", "StarLevel"
+        ).all()
+
+        if q:
+            teachers = teachers.filter(
+                Q(TeacherID__icontains=q) |
+                Q(Person__first_name__icontains=q) |
+                Q(Person__last_name__icontains=q) |
+                Q(Person__email__icontains=q)
+            )
+
+        data = []
+        for t in teachers[:50]:
+            data.append({
+                "TeacherID": t.TeacherID,
+                "first_name": t.Person.first_name,
+                "last_name": t.Person.last_name,
+                "email": t.Person.email,
+                "status": t.Person.Status,
+                "num_stars": t.StarLevel.NumStars if t.StarLevel else 0,
+                "star_level_desc": t.StarLevel.Description if t.StarLevel else None,
+                "profile_picture": (
+                    t.Person.profile.ProfilePicture.url
+                    if hasattr(t.Person, "profile") and t.Person.profile.ProfilePicture
+                    else None
+                ),
+            })
+
+        return Response(data)

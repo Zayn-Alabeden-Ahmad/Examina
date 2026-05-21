@@ -125,3 +125,19 @@ class StudentChallengeSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentChallenge
         fields = '__all__'  
+
+
+from .models import Card, StudentChaosSession
+
+class CardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Card
+        fields = ["CardID", "Name", "Type", "Value"]
+
+class StudentChaosSessionSerializer(serializers.ModelSerializer):
+    DailyCard = CardSerializer(read_only=True)
+    ChosenCard = CardSerializer(read_only=True)
+
+    class Meta:
+        model = StudentChaosSession
+        fields = ["SessionID", "DayKey", "DailyCard", "ChosenCard", "ChaosScore"]

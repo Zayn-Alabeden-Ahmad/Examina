@@ -15,7 +15,11 @@ from .serializers import CategorySerializer
 from rest_framework import status
 from .models import Question
 from .serializers import QuestionSerializer
-
+import random
+from datetime import date
+from django.db import transaction
+from .models import Card, StudentChaosSession, Question, Answer, StudentAnswer
+from .serializers import CardSerializer, StudentChaosSessionSerializer
 
 
 
@@ -414,3 +418,204 @@ class LevelListView(APIView):
         serializer = LevelSerializer(levels, many=True)
         return Response(serializer.data)
     
+class ChaosEntryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        student = request.user.student
+        today = date.today()
+
+        session, _ = StudentChaosSession.objects.get_or_create(
+            Student=student,
+            DayKey=today
+        )
+
+        active_cards = list(Card.objects.filter(IsActive=True))
+        if len(active_cards) < 3:
+            return Response({"error": "Need at least 3 active cards."}, status=400)
+
+        # بطاقة اليوم ثابتة لليوم
+        if not session.DailyCard:
+            session.DailyCard = random.choice(active_cards)
+            session.save(update_fields=["DailyCard"])
+
+        random_three = random.sample(active_cards, 3)
+
+        return Response({
+            "session": StudentChaosSessionSerializer(session).data,
+            "random_cards": CardSerializer(random_three, many=True).data
+        })
+    
+
+
+class ChaosSelectCardView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        student = request.user.student
+        today = date.today()
+        card_id = request.data.get("card_id")
+
+        if not card_id:
+            return Response({"error": "card_id is required"}, status=400)
+
+        try:
+            card = Card.objects.get(CardID=card_id, IsActive=True)
+        except Card.DoesNotExist:
+            return Response({"error": "Card not found"}, status=404)
+
+        session, _ = StudentChaosSession.objects.get_or_create(Student=student, DayKey=today)
+        session.ChosenCard = card
+        session.save(update_fields=["ChosenCard", "UpdatedAt"])
+
+        return Response({
+            "message": "Card selected",
+            "session": StudentChaosSessionSerializer(session).data
+        }, status=200)
+    
+class ChaosQuestionsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        student = request.user.student
+        today = date.today()
+
+        try:
+            session = StudentChaosSession.objects.select_related("ChosenCard").get(Student=student, DayKey=today)
+        except StudentChaosSession.DoesNotExist:
+            return Response({"error": "No chaos session for today."}, status=404)
+
+        if not session.ChosenCard:
+            return Response({"error": "No chosen card yet."}, status=400)
+
+        card = session.ChosenCard
+        qs = Question.objects.filter(QuestionType="Regular")
+
+        if card.Type == "FORCE_CATEGORY":
+            qs = qs.filter(Category=card.Value)
+
+        if card.Type == "FORCE_DIFFICULTY":
+            map_rate = {"Easy": 100, "Medium": 200, "Hard": 300}
+            rate = map_rate.get(str(card.Value).strip(), 100)
+            qs = qs.filter(Rate=rate)
+
+        questions = qs.prefetch_related("answer_set").order_by("?")[:10]
+        if not questions:
+            return Response({"error": "No questions found for this card effect."}, status=404)
+
+        payload = []
+        for q in questions:
+            answers = q.answer_set.all().values("AnswerID", "AnswerText")
+            payload.append({
+                "QuestionID": q.QuestionID,
+                "QuestionName": q.QuestionName,
+                "QuestionText": q.QuestionText,
+                "Category": q.Category,
+                "Rate": q.Rate,
+                "Points": q.Points,
+                "answers": list(answers)
+            })
+
+        return Response({
+            "card": CardSerializer(card).data,
+            "questions": payload
+        }, status=200)
+    
+class SubmitChaosAnswersView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @transaction.atomic
+    def post(self, request):
+        student = request.user.student
+        today = date.today()
+        answers_payload = request.data.get("answers", [])
+
+        try:
+            session = StudentChaosSession.objects.select_related("ChosenCard").get(
+                Student=student, DayKey=today
+            )
+        except StudentChaosSession.DoesNotExist:
+            return Response({"error": "No chaos session."}, status=404)
+
+        if not session.ChosenCard:
+            return Response({"error": "No selected card."}, status=400)
+
+        card = session.ChosenCard
+        total_chaos = 0
+        report = []
+        correct_count = 0
+        wrong_count = 0
+
+        for item in answers_payload:
+            qid = item.get("questionId")
+            aid = item.get("answerId")
+            if not qid or not aid:
+                continue
+
+            try:
+                question = Question.objects.get(pk=qid)
+                selected = Answer.objects.get(pk=aid, Question=question)
+                correct_ans = Answer.objects.filter(Question=question, IsCorrect=True).first()
+            except (Question.DoesNotExist, Answer.DoesNotExist):
+                continue
+
+            is_correct = bool(selected.IsCorrect)
+
+            if is_correct:
+                base_points = question.Points
+                final_points = base_points
+
+                if card.Type == "PERCENT_POINTS":
+                    pct = int(card.Value)
+                    final_points = int(base_points + (base_points * pct / 100))
+                elif card.Type == "FLAT_POINTS":
+                    flat = int(card.Value)
+                    final_points = base_points + flat
+
+                final_points = max(0, final_points)
+                correct_count += 1
+            else:
+                base_points = 0
+                final_points = 0
+                wrong_count += 1
+
+            total_chaos += final_points
+
+            StudentAnswer.objects.create(
+                Student=student,
+                Question=question,
+                SelectedAnswer=selected,
+                IsCorrect=is_correct,
+                PointsEarned=final_points,
+                RateByStudent=0
+            )
+
+            report.append({
+                "question_id": question.QuestionID,
+                "question_text": question.QuestionText,
+                "student_answer": selected.AnswerText,
+                "correct_answer": correct_ans.AnswerText if correct_ans else "-",
+                "is_correct": is_correct,
+                "base_points": base_points,
+                "final_points": final_points
+            })
+
+        # لا ترجع نجاح مع تقرير فارغ
+        if not report:
+            return Response({"error": "No valid answers were processed."}, status=400)
+
+        session.ChaosScore += total_chaos
+        session.save(update_fields=["ChaosScore", "UpdatedAt"])
+
+        student.StudentPoints += total_chaos
+        student.save(update_fields=["StudentPoints"])
+
+        return Response({
+            "status": "success",
+            "chaos_score_gained": total_chaos,
+            "current_chaos_score": session.ChaosScore,
+            "current_student_points": student.StudentPoints,
+            "correct_count": correct_count,
+            "wrong_count": wrong_count,
+            "report": report
+        }, status=200)

@@ -76,3 +76,40 @@ class StudentAnswer(models.Model):
 
 
 
+import uuid
+from django.utils import timezone
+
+class Card(models.Model):
+    CARD_TYPES = [
+        ("PERCENT_POINTS", "Percent Points"),   # +/- نسبة من نقاط السؤال
+        ("FLAT_POINTS", "Flat Points"),         # +/- رقم ثابت
+        ("FORCE_DIFFICULTY", "Force Difficulty"), # easy/medium/hard
+        ("FORCE_CATEGORY", "Force Category"),   # Category محدد
+    ]
+
+    CardID = models.AutoField(primary_key=True)
+    Name = models.CharField(max_length=120)
+    Type = models.CharField(max_length=30, choices=CARD_TYPES)
+    Value = models.CharField(max_length=120)  # نخزن "20" أو "-15" أو "Hard" أو "Math"
+    IsActive = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.Name} ({self.Type}:{self.Value})"
+
+
+class StudentChaosSession(models.Model):
+    SessionID = models.AutoField(primary_key=True)
+    Student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    DayKey = models.DateField(default=timezone.now)  # بطاقة اليوم
+    DailyCard = models.ForeignKey(Card, on_delete=models.SET_NULL, null=True, blank=True, related_name="daily_sessions")
+    ChosenCard = models.ForeignKey(Card, on_delete=models.SET_NULL, null=True, blank=True, related_name="chosen_sessions")
+    ChaosScore = models.IntegerField(default=0)
+    Questions = models.ManyToManyField('Question', blank=True, related_name='chaos_sessions')
+    CreatedAt = models.DateTimeField(auto_now_add=True)
+    UpdatedAt = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("Student", "DayKey")
+
+    def __str__(self):
+        return f"{self.Student.StudentID} - {self.DayKey}"

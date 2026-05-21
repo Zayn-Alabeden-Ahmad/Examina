@@ -45,3 +45,143 @@
   font-size: 18px;
   text-shadow: 2px 2px #000;
 }
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 18px;
+  align-items: stretch;
+}
+
+.dashboard-grid > .col-md-4 {
+  grid-column: span 4;
+  width: 100%;
+  margin: 0;
+}
+
+.grid-span-4 {
+  grid-column: span 4 !important;
+}
+.grid-span-6 {
+  grid-column: span 6 !important;
+}
+.grid-span-12 {
+  grid-column: span 12 !important;
+}
+
+.dashboard-grid .arcade-card {
+  min-height: 260px;
+  border-radius: 14px;
+  backdrop-filter: blur(2px);
+}
+
+.dashboard-grid .arcade-card:hover {
+  transform: translateY(-3px);
+}
+
+@media (max-width: 992px) {
+  .dashboard-grid > .col-md-4,
+  .grid-span-4,
+  .grid-span-6 {
+    grid-column: span 6 !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .dashboard-grid > .col-md-4,
+  .grid-span-4,
+  .grid-span-6,
+  .grid-span-12 {
+    grid-column: span 12 !important;
+  }
+
+  .dashboard-grid .arcade-card {
+    min-height: 230px;
+  }
+}
+.dashboard-stage {
+  position: relative;
+  isolation: isolate;
+}
+
+/* ambient layers */
+.dashboard-stage::before,
+.dashboard-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.dashboard-stage::before {
+  background:
+    radial-gradient(
+      900px 500px at 10% 0%,
+      rgba(34, 211, 238, 0.12),
+      transparent 60%
+    ),
+    radial-gradient(
+      800px 460px at 95% 5%,
+      rgba(250, 204, 21, 0.12),
+      transparent 58%
+    );
+}
+
+.dashboard-stage::after {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size:
+    24px 24px,
+    24px 24px;
+  mask-image: radial-gradient(circle at center, black 45%, transparent 100%);
+}
+
+.dashboard-shell {
+  background: linear-gradient(
+    180deg,
+    rgba(2, 10, 30, 0.92),
+    rgba(8, 20, 48, 0.92)
+  );
+  border: 2px solid #facc15;
+  box-shadow:
+    0 0 0 2px rgba(250, 204, 21, 0.2) inset,
+    0 12px 40px rgba(0, 0, 0, 0.45),
+    0 0 30px rgba(250, 204, 21, 0.22);
+  backdrop-filter: blur(2px);
+}
+
+/* better spacing rhythm for cards */
+.dashboard-grid {
+  margin-top: 0.5rem;
+}
+
+.dashboard-grid .arcade-card {
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+}
+
+.dashboard-grid .arcade-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.05),
+    transparent 35%
+  );
+  pointer-events: none;
+}
+
+.dashboard-grid .arcade-card:hover {
+  transform: translateY(-4px);
+}
+
+/* mobile polish */
+@media (max-width: 576px) {
+  .dashboard-shell {
+    padding: 1rem !important;
+    border-width: 1px;
+  }
+}

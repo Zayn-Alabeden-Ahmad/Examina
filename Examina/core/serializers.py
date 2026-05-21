@@ -49,13 +49,14 @@ class StudentRegisterSerializer(serializers.ModelSerializer):
      password = validated_data.pop('password')
      email = validated_data['email']
      person = Person(
-        username=email, 
+        username=validated_data['first_name'], 
         email=email,
         first_name=validated_data['first_name'],
         last_name=validated_data['last_name'])
      person.set_password(password)
      person.save()
-
+     person.username=person.username+str(person.id)
+     person.save()
      profile = Profile.objects.create(
         Person=person,
              )
@@ -130,10 +131,10 @@ class StudentExtraSerializer(serializers.ModelSerializer):
         fields = ['StudentPoints', 'level_name']
 
 class TeacherExtraSerializer(serializers.ModelSerializer):
-    star_level_name = serializers.CharField(source='StarLevel.LevelName', read_only=True)
+    star_level_name = serializers.CharField(source='StarLevel.Description', read_only=True)
     class Meta:
         model = Teacher
-        fields = ['Age', 'StarTotalPoints', 'star_level_name', 'QuestionsAdded']
+        fields = ['Age', 'StarTotalPoints', 'star_level_name', 'QuestionsAdded','QuestionsEdited','QuestionsDeleted']
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -144,7 +145,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Person
-        fields = ['first_name', 'last_name', 'email', 'profile', 'extra_info', 'age']
+        fields = ['first_name', 'last_name', 'email', 'profile', 'Status' , 'extra_info', 'age']
 
     def get_extra_info(self, obj):
         if hasattr(obj, 'student'):
@@ -204,11 +205,12 @@ class StudentLeaderboardSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(source='Person.last_name', read_only=True)
     # تعديل هذا السطر ليصبح آمناً
     level_name = serializers.SerializerMethodField()
+    status = serializers.CharField(source="Person.Status", read_only=True)
     profile_pic = serializers.ImageField(source='Person.profile.ProfilePicture', read_only=True)
 
     class Meta:
         model = Student
-        fields = ['StudentID', 'first_name', 'last_name', 'level_name', 'StudentPoints', 'profile_pic']
+        fields = ['StudentID', 'first_name', 'last_name', 'level_name', 'StudentPoints', 'profile_pic','status']
 
     def get_level_name(self, obj):
         # التحقق إذا كان الطالب لديه مستوى مرتبط به أم لا
@@ -219,14 +221,16 @@ class StudentLeaderboardSerializer(serializers.ModelSerializer):
 class TeacherLeaderboardSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='Person.first_name', read_only=True)
     last_name = serializers.CharField(source='Person.last_name', read_only=True)
+    Description = serializers.CharField(source='StarLevel.Description',read_only=True)
     # تعريف الحقل بشكل آمن للتعامل مع الـ NULL أيضاً (مثل مشكلة الطلاب)
     num_stars = serializers.SerializerMethodField()
+    status = serializers.CharField(source="Person.Status", read_only=True)
     profile_pic = serializers.ImageField(source='Person.profile.ProfilePicture', read_only=True)
 
     class Meta:
         model = Teacher
         # تأكد من وجود 'num_stars' هنا داخل المصفوفة
-        fields = ['TeacherID', 'first_name', 'last_name', 'num_stars', 'StarTotalPoints', 'profile_pic']
+        fields = ['TeacherID', 'first_name', 'last_name', 'num_stars', 'StarTotalPoints', 'profile_pic','Description','status']
 
     def get_num_stars(self, obj):
         # التحقق من وجود StarLevel لتجنب الـ AttributeError

@@ -9,13 +9,13 @@ export default function Dashboard() {
   const [userType, setUserType] = useState(null);
   const navigate = useNavigate();
   const [hasNewAchievement, setHasNewAchievement] = useState(false);
-
+  const API_BASE_URL = "http://127.0.0.1:8000";
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await api.get("/home/");
         const userData = res.data.user_data || res.data;
-
+        console.log("User Data Response:", res.data);
         if (userData && userData.student_id) {
           setUser(userData);
           localStorage.setItem("studentId", userData.student_id);
@@ -55,6 +55,12 @@ export default function Dashboard() {
     );
   }
 
+  const getStatusValue = (obj) => obj?.status ?? obj?.Status ?? "";
+  const isOnline = (obj) => {
+    const s = String(getStatusValue(obj)).trim().toLowerCase();
+    return s === "active" || s === "online" || s === "true" || s === "1";
+  };
+
   const handleLogout = async () => {
     try {
       const refresh = localStorage.getItem("refresh");
@@ -93,15 +99,20 @@ export default function Dashboard() {
             🎮 Examina
           </div>
 
-          <div className="d-flex align-items-center bg-dark bg-opacity-75 p-3 rounded border border-warning shadow">
+          <div className="d-flex align-items-center hero-image bg-dark bg-opacity-75 p-3 rounded border border-warning shadow">
             {user.profile_picture && (
               <img
-                src={user.profile_picture}
+                src={
+                  user.profile_picture.startsWith("http")
+                    ? user.profile_picture
+                    : `${API_BASE_URL}${user.profile_picture}`
+                }
                 alt="Profile"
                 className="rounded-circle me-3"
                 style={{
-                  width: "50px",
-                  height: "50px",
+                  width: "50px", // يمكنك تغيير القيمة حسب الرغبة (مثلاً 40px أو 60px)
+                  height: "50px", // يجب أن تكون مطابقة للعرض لضمان شكل دائري مثالي
+                  objectFit: "cover", // لضمان عدم تشوه الصورة إذا كانت أبعادها غير متساوية
                   border: "2px solid #facc15",
                 }}
               />
@@ -137,7 +148,7 @@ export default function Dashboard() {
               )}
               <div>
                 <strong className="text-warning">Status:</strong>{" "}
-                {user.status ? "🟢 Online" : "🔴 Offline"}
+                {isOnline(user) ? "🟢 Online" : "🔴 Offline"}
               </div>
             </div>
 
@@ -157,16 +168,10 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="container py-5">
+      <div className="container-fluid dashboard-stage py-4 px-3 px-md-4 px-xl-5">
         <div className="row justify-content-center">
-          <div className="col-md-11 text-center">
-            <div
-              className="p-5 rounded"
-              style={{
-                background: "rgba(2,6,23,0.9)",
-                border: "3px solid #facc15",
-                boxShadow: "0 0 25px #facc15",
-              }}>
+          <div className="col-12 col-xxl-11 text-center">
+            <div className="dashboard-shell p-4 p-md-5 rounded">
               <h1
                 className="fw-bold mb-4 arcade-font"
                 style={{
@@ -183,11 +188,11 @@ export default function Dashboard() {
                 Welcome to the Examina Arcade Dashboard 🚀
               </p>
 
-              <div className="row g-4 justify-content-center">
+              <div className="dashboard-grid">
                 {/* --- STUDENT VIEW --- */}
                 {userType === "student" && (
                   <>
-                    <div className="col-md-4">
+                    <div className="col-md-4 grid-span-6">
                       <div
                         className="arcade-card p-4 h-100 category-hover-effect d-flex flex-column"
                         onClick={() => navigate("/categories")}
@@ -215,8 +220,7 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    {/* NEW: CHALLENGES CARD */}
-                    <div className="col-md-4">
+                    <div className="col-md-4 grid-span-6">
                       <div
                         className="arcade-card p-4 h-100 d-flex flex-column category-hover-effect"
                         onClick={() => navigate("/challenges-list")}
@@ -254,9 +258,39 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </div>
-
-                    {/* My Trophies */}
-                    <div className="col-md-4">
+                    <div className="col-md-4 grid-span-4">
+                      <div
+                        className="arcade-card p-4 h-100 d-flex flex-column category-hover-effect"
+                        onClick={() => navigate("/chaos-mode")}
+                        style={{
+                          cursor: "pointer",
+                          border: "2px solid #f43f5e",
+                          background: "rgba(136, 19, 55, 0.35)",
+                          boxShadow: "0 0 15px rgba(244, 63, 94, 0.3)",
+                        }}>
+                        <div
+                          style={{ fontSize: "60px" }}
+                          className="mb-3 text-center">
+                          🃏
+                        </div>
+                        <h3
+                          className="arcade-title text-center"
+                          style={{ color: "#fb7185" }}>
+                          CHAOS MODE
+                        </h3>
+                        <p className="text-light small text-center">
+                          Draw a random card and twist your mission rules.
+                        </p>
+                        <div className="mt-auto">
+                          <button
+                            className="btn w-100 fw-bold"
+                            style={{ background: "#f43f5e", color: "#fff" }}>
+                            ENTER CHAOS
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="col-md-4 grid-span-4">
                       <div
                         className="arcade-card p-4 h-100 d-flex flex-column category-hover-effect"
                         onClick={() => navigate("/achievements")}
@@ -293,13 +327,74 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </div>
+
+                    <div className="col-md-4 grid-span-4">
+                      <div
+                        className="arcade-card p-4 h-100 d-flex flex-column category-hover-effect"
+                        onClick={() => navigate("/leaderboard")}
+                        style={{
+                          cursor: "pointer",
+                          border: "2px solid #eeeeee",
+                          background: "rgba(48, 39, 36, 0.4)",
+                          boxShadow: "0 0 15px rgba(21, 74, 250, 0.3)",
+                          transition: "0.3s",
+                          position: "relative",
+                        }}>
+                        <div
+                          style={{ fontSize: "60px" }}
+                          className="mb-3 text-center">
+                          🥇
+                        </div>
+                        <h3 className="arcade-title text-warning text-center">
+                          MY RANK
+                        </h3>
+                        <p className="text-light small text-center">
+                          Track your personal rank figth for the 1&apos;th place
+                        </p>
+                        <div className="mt-auto">
+                          <button
+                            className="btn btn-warning fw-bold w-100 shadow arcade-font-btn"
+                            style={{ height: "50px" }}>
+                            Leader Board
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="col-md-4 grid-span-4">
+                      <div
+                        className="arcade-card p-4 h-100 category-hover-effect d-flex flex-column"
+                        onClick={() => navigate("/my-profile")}
+                        style={{
+                          cursor: "pointer",
+                          border: "2px solid #b1afa7",
+                          background: "rgba(30, 58, 138, 0.4)",
+                          transition: "0.3s",
+                        }}>
+                        <div style={{ fontSize: "60px" }} className="mb-3">
+                          🛟
+                        </div>
+                        <h3 className="arcade-title text-warning">
+                          Player Profile
+                        </h3>
+                        <p className="text-light small">
+                          Create , Manage Enhance your profile so other players
+                          can know you
+                        </p>
+                        <div className="mt-auto">
+                          <button className="btn btn-warning fw-bold w-100 shadow arcade-font-btn">
+                            Enter Safe Zone
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </>
                 )}
 
                 {/* --- TEACHER VIEW --- */}
                 {userType === "teacher" && (
                   <>
-                    <div className="col-md-4">
+                    <div className="col-md-4 grid-span-6">
                       <div
                         className="arcade-card p-4 h-100 d-flex flex-column category-hover-effect"
                         onClick={() => navigate("/questions")}
@@ -330,7 +425,7 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    <div className="col-md-4">
+                    <div className="col-md-4 grid-span-6">
                       <div
                         className="arcade-card p-4 h-100 d-flex flex-column category-hover-effect"
                         onClick={() => navigate("/teacher-challenges")}
@@ -368,7 +463,87 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    <div className="col-md-4">
+                    <div className="col-md-4 grid-span-4">
+                      <div
+                        className="arcade-card p-4 h-100 d-flex flex-column category-hover-effect"
+                        onClick={() => navigate("/teacher-students-search")}
+                        style={{
+                          cursor: "pointer",
+                          border: "2px solid #22c55e",
+                          background: "rgba(6, 78, 59, 0.4)",
+                          boxShadow: "0 0 15px rgba(34, 197, 94, 0.3)",
+                          transition: "0.3s",
+                        }}>
+                        <div
+                          style={{ fontSize: "60px" }}
+                          className="mb-3 text-center">
+                          🔎
+                        </div>
+                        <h3
+                          className="arcade-title text-center"
+                          style={{ color: "#4ade80" }}>
+                          STUDENT RADAR
+                        </h3>
+                        <p className="text-light small text-center">
+                          Search any student by ID, name, or email and view
+                          their status quickly.
+                        </p>
+                        <div className="mt-auto">
+                          <button
+                            className="btn fw-bold w-100 shadow arcade-font-btn"
+                            style={{
+                              backgroundColor: "#22c55e",
+                              color: "white",
+                              border: "none",
+                              height: "50px",
+                            }}>
+                            SEARCH STUDENTS
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="col-md-4 grid-span-4">
+                      <div
+                        className="arcade-card p-4 h-100 d-flex flex-column category-hover-effect"
+                        onClick={() => navigate("/teacher-teachers-search")}
+                        style={{
+                          cursor: "pointer",
+                          border: "2px solid #38bdf8",
+                          background: "rgba(7, 89, 133, 0.35)",
+                          boxShadow: "0 0 15px rgba(56, 189, 248, 0.3)",
+                          transition: "0.3s",
+                        }}>
+                        <div
+                          style={{ fontSize: "60px" }}
+                          className="mb-3 text-center">
+                          🧑🏻‍🏫
+                        </div>
+                        <h3
+                          className="arcade-title text-center"
+                          style={{ color: "#7dd3fc" }}>
+                          TEACHER RADAR
+                        </h3>
+                        <p className="text-light small text-center">
+                          Search teachers by ID, name, or email and monitor
+                          their status.
+                        </p>
+                        <div className="mt-auto">
+                          <button
+                            className="btn fw-bold w-100 shadow arcade-font-btn"
+                            style={{
+                              backgroundColor: "#0ea5e9",
+                              color: "white",
+                              border: "none",
+                              height: "50px",
+                            }}>
+                            SEARCH TEACHERS
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="col-md-4 grid-span-4">
                       <div
                         className="arcade-card p-4 h-100 d-flex flex-column category-hover-effect"
                         onClick={() => navigate("/achievements")}
@@ -394,6 +569,67 @@ export default function Dashboard() {
                             className="btn btn-warning fw-bold w-100 shadow arcade-font-btn"
                             style={{ height: "50px" }}>
                             VIEW DETAILS
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="col-md-4 grid-span-6">
+                      <div
+                        className="arcade-card p-4 h-100 d-flex flex-column category-hover-effect"
+                        onClick={() => navigate("/leaderboard")}
+                        style={{
+                          cursor: "pointer",
+                          border: "2px solid #eeeeee",
+                          background: "rgba(48, 39, 36, 0.4)",
+                          boxShadow: "0 0 15px rgba(21, 74, 250, 0.3)",
+                          transition: "0.3s",
+                          position: "relative",
+                        }}>
+                        <div
+                          style={{ fontSize: "60px" }}
+                          className="mb-3 text-center">
+                          🥇
+                        </div>
+                        <h3 className="arcade-title text-warning text-center">
+                          MY RANK
+                        </h3>
+                        <p className="text-light small text-center">
+                          Track your personal rank figth for the 1&apos;th place
+                        </p>
+                        <div className="mt-auto">
+                          <button
+                            className="btn btn-warning fw-bold w-100 shadow arcade-font-btn"
+                            style={{ height: "50px" }}>
+                            Leader Board
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="col-md-4 grid-span-6">
+                      <div
+                        className="arcade-card p-4 h-100 category-hover-effect d-flex flex-column"
+                        onClick={() => navigate("/my-profile")}
+                        style={{
+                          cursor: "pointer",
+                          border: "2px solid #b1afa7",
+                          background: "rgba(30, 58, 138, 0.4)",
+                          transition: "0.3s",
+                        }}>
+                        <div style={{ fontSize: "60px" }} className="mb-3">
+                          🛟
+                        </div>
+                        <h3 className="arcade-title text-warning">
+                          Player Profile
+                        </h3>
+                        <p className="text-light small">
+                          Create , Manage Enhance your profile so other players
+                          can know you
+                        </p>
+                        <div className="mt-auto">
+                          <button className="btn btn-warning fw-bold w-100 shadow arcade-font-btn">
+                            Enter Safe Zone
                           </button>
                         </div>
                       </div>

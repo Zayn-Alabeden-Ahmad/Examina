@@ -1,7 +1,7 @@
 from django.urls import path 
 from core.views import StudentRegisterView
 from core.views import LoginView, LogoutView , HomeView , CreateQuestionAPIView ,UpdateQuestionAPIView , DeleteQuestionAPIView , GetMyQuestionsAPIView , UserProfileView
-from .views import StudentLeaderboardView , TeacherLeaderboardView , StudentDetailView , TeacherDetailView 
+from .views import StudentLeaderboardView , TeacherLeaderboardView , StudentDetailView , TeacherDetailView ,TeacherSearchStudentsView ,TeacherSearchTeachersView
 urlpatterns = [
     path('register/student/', StudentRegisterView.as_view(), name='student-register'),
     path('login/', LoginView.as_view(), name='login'),
@@ -12,11 +12,15 @@ urlpatterns = [
     path('questions/<int:pk>/delete/', DeleteQuestionAPIView.as_view(), name='question-delete'),
     path('myquestions/',GetMyQuestionsAPIView.as_view(),name="Questions"), #return teacher question
 
+
     path('my-profile/', UserProfileView.as_view(), name='user-profile'),
     path('leaderboard/students/', StudentLeaderboardView.as_view()),
     path('profile/student/<int:pk>/', StudentDetailView.as_view()),
     path('leaderboard/teachers/', TeacherLeaderboardView.as_view()),
     path('profile/teacher/<int:pk>/', TeacherDetailView.as_view()),
+    path("teacher/students/search/", TeacherSearchStudentsView.as_view()),
+    path("teacher/teachers/search/", TeacherSearchTeachersView.as_view()),
+
     
 ]
 

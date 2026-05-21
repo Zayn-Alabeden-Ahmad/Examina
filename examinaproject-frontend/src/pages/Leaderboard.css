@@ -1,0 +1,82 @@
+/* الخلفية المتدرجة مثل الصورة */
+.examina-bg {
+  background: radial-gradient(circle, #1a2a6c, #0d1b2a);
+  color: white;
+}
+
+/* الحاوية الرئيسية بإطار ذهبي مضيء */
+.arcade-container {
+  background: rgba(0, 0, 0, 0.85);
+  border: 3px solid #fbc02d;
+  border-radius: 15px;
+  box-shadow: 0 0 25px rgba(251, 192, 45, 0.4);
+}
+
+/* العنوان بنفس لون Examina في الصورة */
+.examina-title {
+  color: #fbc02d;
+  font-weight: 900;
+  letter-spacing: 5px;
+  text-shadow: 3px 3px 0px #8b6508;
+}
+
+.arcade-subtitle {
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+}
+
+/* أزرار التبديل */
+.examina-btn-group {
+  background: #000;
+  border: 2px solid #333;
+  padding: 5px;
+  border-radius: 10px;
+}
+
+.examina-btn {
+  background: transparent;
+  border: none;
+  color: #888;
+  padding: 10px 30px;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.active-student {
+  background: #c62828 !important; /* لون الميشن كنترول */
+  color: white !important;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(198, 40, 40, 0.6);
+}
+
+.active-teacher {
+  background: #00838f !important; /* لون كويست جريد */
+  color: white !important;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 131, 143, 0.6);
+}
+/* تحسين لون الاسم ليصبح أبيض ناصع أو أصفر باهت */
+.player-name {
+  color: #ffffff; /* أبيض صريح */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); /* ظل بسيط لزيادة الحدة */
+  letter-spacing: 1px;
+}
+
+/* إذا أردت الاسم الأول للاعب (Rank 1) بلون مميز مثل الصورة */
+.top-rank .player-name {
+  color: #fbc02d; /* نفس لون العنوان الأصفر */
+}
+
+/* تحسين شكل التاج */
+.player-name span {
+  display: inline-block;
+  filter: drop-shadow(0 0 5px rgba(251, 192, 45, 0.5));
+  transform: translateY(-2px); /* رفعه قليلاً للأعلى */
+}
+
+/* لضمان أن النص لا يبهت بسبب الـ opacity في الـ arcade-row */
+.arcade-row {
+  border-bottom: 1px solid #222;
+  transition: 0.2s;
+  background: rgba(255, 255, 255, 0.02); /* خلفية خفيفة جداً لتبرز الصف */
+}

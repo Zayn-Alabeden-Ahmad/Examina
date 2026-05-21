@@ -11,6 +11,14 @@ import ManageQuestions from "./pages/ManageQuestions";
 import TeacherChallenges from "./pages/TeacherChallenges";
 import StudentChallenges from "./pages/StudentChallenges";
 import MissionRoom from "./pages/MissionRoom";
+import Leaderboard from "./pages/Leaderboard";
+import UserProfile from "./pages/UserProfile";
+import MyProfile from "./pages/MyProfile";
+import TeacherStudentSearch from "./pages/TeacherStudentSearch";
+import TeacherSearchTeachers from "./pages/TeacherSearchTeachers";
+import ChaosModeEntry from "./pages/ChaosModeEntry";
+import ChaosModeQuiz from "./pages/ChaosModeQuiz";
+import ChaosModeReport from "./pages/ChaosModeReport";
 function App() {
   return (
     <Router>
@@ -66,6 +74,78 @@ function App() {
           element={
             <ProtectedRoute>
               <MissionRoom />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/leaderboard"
+          element={
+            <ProtectedRoute>
+              <Leaderboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/user-profile"
+          element={
+            <ProtectedRoute>
+              <UserProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-profile"
+          element={
+            <ProtectedRoute>
+              <MyProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/:type/:id"
+          element={
+            <ProtectedRoute>
+              <UserProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher-students-search"
+          element={
+            <ProtectedRoute>
+              <TeacherStudentSearch />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher-teachers-search"
+          element={
+            <ProtectedRoute>
+              <TeacherSearchTeachers />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chaos-mode"
+          element={
+            <ProtectedRoute>
+              <ChaosModeEntry />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chaos-mode/quiz"
+          element={
+            <ProtectedRoute>
+              <ChaosModeQuiz />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chaos-mode/report"
+          element={
+            <ProtectedRoute>
+              <ChaosModeReport />
             </ProtectedRoute>
           }
         />
